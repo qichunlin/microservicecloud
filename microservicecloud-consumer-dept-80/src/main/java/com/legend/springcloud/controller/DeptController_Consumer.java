@@ -16,8 +16,10 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class DeptController_Consumer {
 
-	private static final String REST_URL_PREFIX = "http://localhost:8001";
-	//private static final String REST_URL_PREFIX = "http://MICROSERVICECLOUD-DEPT";
+	//private static final String REST_URL_PREFIX = "http://localhost:8001";//写死的,因为后面做了集群
+
+	//修改成微服务的名字(微服务访问)
+	private static final String REST_URL_PREFIX = "http://MICROSERVICECLOUD-DEPT";
 
 	/**
 	 * RestTemplate 提供了多种便捷远程访问Http服务的方法,是一种简单便捷的访问restful服务模板类

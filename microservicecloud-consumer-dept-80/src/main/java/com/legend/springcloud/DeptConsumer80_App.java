@@ -7,7 +7,7 @@ import org.springframework.cloud.netflix.ribbon.RibbonClient;
 
 
 @SpringBootApplication
-@EnableEurekaClient
+@EnableEurekaClient //添加Eureka客户端(Ribbon)
 public class DeptConsumer80_App {
 	public static void main(String[] args)
 	{

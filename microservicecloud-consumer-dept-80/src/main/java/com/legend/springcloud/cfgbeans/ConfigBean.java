@@ -14,8 +14,13 @@ import com.netflix.loadbalancer.RetryRule;
 @Configuration
 public class ConfigBean{
 
+	/**
+	 * Spring Cloud Ribbon是基于Netflix Ribbon实现的一套客户端 负载均衡的工具。 开启注解 @LoadBalanced
+	 * 获取的REST时注入Ribbon的配置
+	 * @return
+	 */
 	@Bean
-	@LoadBalanced//Spring Cloud Ribbon是基于Netflix Ribbon实现的一套客户端       负载均衡的工具。
+	@LoadBalanced
 	public RestTemplate getRestTemplate() {
 		return new RestTemplate();
 	}
