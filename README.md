@@ -375,3 +375,35 @@ Ribbon就属于进程内LB，它只是一个类库，集成于消费方进程，
 ![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728112619702-1144742658.png)
 
 >总结：Ribbon其实就是一个软负载均衡的客户端组件，他可以和其他所需请求的客户端结合使用，和eureka结合只是其中的一个实例。
+
+
+#### Ribbon核心组件IRule
+```
+根据特定算法中从服务列表中选取一个要访问的服务
+```
+- RoundRobinRule轮询
+- RandomRule随机
+- AvailabilityFilteringRule
+	- 会先过滤掉由于多次访问故障而处于断路器跳还有并发的连接数量超过阔值的服务，然后对剩余的服务列表按照轮询政策进行访问
+- WeightedResponseTimeRule
+	- 根据平均响应时间计算所有服务的权重，响应时间越快服务权重越大被选中的概率越高。刚启动时如果统计信息不足，则使用RoundRobinRule策略等信息统计够，会切换到WeightedResponse TimeRule 
+- RetryRule
+	- 先按照RoundRobinRule的策略获取服务，如果获取服务则在指定时间内进行重试,获取可用服务
+- BestAvailableRule
+	- 会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务然后选择一个并发量最小的服务
+- ZoneAvoidanceRule默认规则，复合判断server所在区域的性能和serve的可用性选择服务器
+
+`在消费者的配置类中添加`
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728212712556-1902521571.png)
+
+#### Ribbon自定义负载均衡策略
+`@RibbonClient(name = "MICROSERVICECLOUD-DEPT",configuration = MySeleRule.class )`
+在启动该微服务的时候就能去加载我们的自定义Ribbon配置类，从而使配置生效，
+
+
+`官方文档明确给出了警告`
+这个自定义配置类不能放在@ComponentScan所扫描的当前包下以及子包下，否则我们自定义的这个配置类就会被所有的Ribbon客户端所共享，也就是说我们达不到特殊化定制的目的了。
+
+
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728215150261-1214882692.png)
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728215208922-1273422977.png)
