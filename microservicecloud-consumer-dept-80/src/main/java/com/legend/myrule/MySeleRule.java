@@ -15,6 +15,7 @@ public class MySeleRule {
 
     @Bean
     public IRule myRule(){
-        return new RandomRule();//Ribbon默认是轮询,自定义为随机
+        //return new RandomRule();//Ribbon默认是轮询,自定义为随机
+        return new RandomRule_ZY();//使用自定义负载均衡策略
     }
 }
