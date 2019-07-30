@@ -407,3 +407,140 @@ Ribbon就属于进程内LB，它只是一个类库，集成于消费方进程，
 
 ![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728215150261-1214882692.png)
 ![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190728215208922-1273422977.png)
+
+#### 自定义规则深度解析
+```
+package com.legend.myrule;
+
+import com.netflix.client.config.IClientConfig;
+import com.netflix.loadbalancer.AbstractLoadBalancerRule;
+import com.netflix.loadbalancer.ILoadBalancer;
+import com.netflix.loadbalancer.Server;
+
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
+/**
+ * 自定义负载均衡策略
+ */
+public class RandomRule_ZY extends AbstractLoadBalancerRule {
+
+    //total=0   调用次数记录,当total==5 以后,我们的指针才往下走
+    //index=0   当前对外提供服务的服务器地址
+    //total需要重新置为0,但是已经达到过一个5次,我们的index=1
+    private int total = 0;//总共被调用的次数,目前要求每条被调用5次
+    private int currentIndex = 0;//当前提供服务的机器号
+
+
+
+    public Server choose(ILoadBalancer lb, Object key) {
+        if (lb == null) {
+            return null;
+        }
+        Server server = null;
+
+        while (server == null) {
+            if (Thread.interrupted()) {
+                return null;
+            }
+            List<Server> upList = lb.getReachableServers();
+            List<Server> allList = lb.getAllServers();
+
+            int serverCount = allList.size();
+            if (serverCount == 0) {
+                /*
+                 * No servers. End regardless of pass, because subsequent passes
+                 * only get more restrictive.
+                 */
+                return null;
+            }
+
+            //随机上面的源代码
+            //int index = chooseRandomInt(serverCount);
+            //server = upList.get(index);
+
+            //自定义策略方式
+            if (total < 5){
+                server = upList.get(currentIndex);
+                total++;
+            } else {
+                total = 0;//
+                currentIndex++;//第一台机器结束
+                //防止超出我们的服务机器,需要重新重0开始
+                if (currentIndex >= upList.size()){
+                    currentIndex = 0;
+                }
+            }
+
+
+            if (server == null) {
+                /*
+                 * The only time this should happen is if the server list were
+                 * somehow trimmed. This is a transient condition. Retry after
+                 * yielding.
+                 */
+                Thread.yield();
+                continue;
+            }
+
+            if (server.isAlive()) {
+                return (server);
+            }
+
+            // Shouldn't actually happen.. but must be transient or a bug.
+            server = null;
+            Thread.yield();
+        }
+
+        return server;
+
+    }
+
+    protected int chooseRandomInt(int serverCount) {
+        return ThreadLocalRandom.current().nextInt(serverCount);
+    }
+
+    @Override
+    public Server choose(Object key) {
+        return choose(getLoadBalancer(), key);
+    }
+
+    @Override
+    public void initWithNiwsConfig(IClientConfig iClientConfig) {
+
+    }
+}
+```
+
+- 修改配置类 
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190729085206623-11861087.png)
+
+### Feign
+#### Feign定义
+```
+	Feign是一个声明式的Web服务客户端，使得编写Web服务客户端变得非常容易，只需要创建一个接口，然后在上面添加注解即可。
+```
+
+
+#### Feign能干什么
+Feign旨在使编写Java Http客户端变得更容易。
+前面在使用Ribbon+RestTemplate时，利用RestTemplate对http请求的封装处理，形成了一套模版化的调用方法。但是在实际开发中，由于对服务依赖的调用可能不止一处，往往一个接口会被多处调用，所以通常都会针对每个微服务自行封装一些客户端类来包装这些依赖服务的调用。所以，Feign在此基础上做了进一步封装，由他来帮助我们定义和实现依赖服务接口的定义。在Feign的实现下，我们只需创建一个接口并使用注解的方式来配置它（以前是Dao接口上面标注Mapper注解，现在是一个微服务接口上面标注一个Feign注解即可），即可完成对服务提供方的接口绑定，简化了使用Spring cloud Ribbon时，自动封装服务调用客户端的开发量。
+
+#### Feign集成了Ribbon
+利用Ribbon维护了MicroServiceCloud-Dept的服务列表信息，并且通过轮询实现了客户端的负载均衡。而与Ribbon不同的是，通过feign只需要定义服务绑定接口且以声明式的方法，优雅而简单的实现了服务调用
+
+#### Feign配置
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190729220828821-704142279.png)
+
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190729220940417-168331661.png)
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190729221255789-1000714821.png)
+![](https://img2018.cnblogs.com/blog/1231979/201907/1231979-20190729221331562-1499297179.png)
+
+- 测试
+	- 启动3个eureka集群
+	- 启动3个部门微服务8001/8002/8003
+	- 启动Feign（Feign自带负载均衡配置项）
+	- 访问feign工程的地址
+
+
+Feign通过接口的方法调用Rest服务（之前是Ribbon+RestTemplate），该请求发送给Eureka服务器（http://MICROSERVICECLOUD-DEPT/dept/list），通过Feign直接找到服务接口，由于在进行服务调用的时候融合了Ribbon技术，所以也支持负载均衡作用。
