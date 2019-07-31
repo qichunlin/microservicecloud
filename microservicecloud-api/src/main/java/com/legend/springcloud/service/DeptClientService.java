@@ -15,7 +15,8 @@ import java.util.List;
  * 一个实现了FallbackFactory接口的类DeptClientServiceFallbackFactory
  * @author legend
  */
-@FeignClient(value = "MICROSERVICECLOUD-DEPT")
+//@FeignClient(value = "MICROSERVICECLOUD-DEPT")  //做Feign模块的时候添加的注解
+@FeignClient(value = "MICROSERVICECLOUD-DEPT",fallbackFactory = DeptClientServiceFallbackFactory.class)  //做服务降级模块添加的
 public interface DeptClientService {
 
     @RequestMapping(value = "/dept/get/{id}", method = RequestMethod.GET)
