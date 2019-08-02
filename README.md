@@ -672,3 +672,63 @@ Hystrix是一个用于处理分布式系统的延迟和容错的开源库,在分
 
 所调降级，一般是从整体负荷考虑。就是当个服务熔断之店，服务器将不再被调用，此时客户端可以自己准备一个本地的fallback回调，返回一个缺省值。
 这样做，虽然服务水平下降，但好歹可用，比直接挂掉要强。
+
+
+---
+
+#### 服务监控hystrixDashboard
+
+
+除了隔离依赖服务的调用以外，Hystrix还提供了准实时的调用监瑶（Hystrix Dashboard），Hystrix会持续地记录所有通过Hystrix发起的请求的执行信息，并以统计报表和图形的形式展示给用户，包括每秒执行多少请求多少成功，多少失败等。
+Netflix通过hystrix-metrics-event-stream项目实现了对以上指标的监控。Spring Cloud也提供了Hystrix Dashboard的整合，对监控内容转化成可视化界面。
+
+
+#### 服务监控仪表盘配置
+- 创建工程 microservicecloud-consumer-hystrix-dashboard
+`修改工程配置`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801234758791-2121441950.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801234811006-1078407935.png)
+
+
+- 所有Provider微服务提供类（8001/8002/8003）都需要监控依赖配置
+
+`添加监控信息配置`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801232723067-1849019308.png)
+
+
+- 启动microservicecloud-consumer-hystrix-dashboard该微服务监控消费端
+
+`http://localhost:9001/hystrix`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801232412074-1662762203.png)
+
+
+- 测试微服务监控状态配置是否成功
+	- 启动3个eureka集群
+	- 启动microservicecloud-provider-dept-hystrix-8001
+	- 启动microservicecloud-consumer-hystrix-dashboard 服务
+
+`启动的服务`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233445514-621516442.png)
+
+`测试服务`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233300881-1051572641.png)
+
+
+`看Hystrix规则访问`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233328464-851348829.png)
+
+```
+1：Delay：该参数用来控制服务器上轮询监控信息的延迟时间，默认为2000毫秒，可以通过配置该属性来降低客户端的网络和CPU消耗。
+2：Title：该参数对应了头部标题Hystrix Stream之后的内容，默认会使用具体监控实例的URL，可以通过配置该信息来展示更合适的标题。
+```
+
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233414078-1591386840.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233645256-55317703.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233706530-1862672086.png)
+
+
+`怎么看Hystrix的监控?  7色1圈1线`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801233945096-694263832.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801234106607-239294885.png)
+
+---
