@@ -732,3 +732,43 @@ Netflix通过hystrix-metrics-event-stream项目实现了对以上指标的监控
 ![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190801234106607-239294885.png)
 
 ---
+
+
+### Zuul
+```
+	zuul包含了对请求的路由和过滤两个最主要的功能：
+	其中路由功能负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础而过滤器功能则负责对请求的处理过程进行干预，是实现请求校验、服务聚合等功能的基础.Zuul和Eureka进行整合，将Zuul自身注册为Eureka服务治理下的应用，同时从Eureka中获得其他微服务的消息，也即以后的访问微服务都是通过Zuul跳转后获得。
+	注意：Zuul服务最终还是会注册进Eureka提供=代理+路由+过滤三大功能
+```
+[ZUUL官方资料](https://github.com/Netflix/zuul/wiki)
+
+#### Zuul配置
+- 创建Zuul-gateway网关工程
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802231122327-1128858172.png)
+
+- 添加pom文件依赖
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802231139693-1370140657.png)
+
+- 在主启动类添加注解  @EnableZuulProxy
+
+- 测试
+	- 启动3个Eureka集群
+	- 一个服务提供类microservicecloud-provider-dept-8001
+	- 一个路由
+
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802224702531-378594312.png)
+
+- 不用路由
+` http://localhost:8001/dept/get/2`
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802223720622-827715715.png)
+
+- 使用路由
+`http://myzuul.com:9527/microservicecloud-dept/dept/get/2`
+
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802225507199-1104083182.png)
+
+
+#### zuul配置路由规则
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802230209579-1922409412.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802230425558-1783376014.png)
+![](https://img2018.cnblogs.com/blog/1231979/201908/1231979-20190802230925619-1769758782.png)

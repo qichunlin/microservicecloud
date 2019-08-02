@@ -14,3 +14,22 @@ eureka:
     prefer-ip-address: true 
 
 
+# 之前访问路由的时候   http://myzuul.com:9527/microservicecloud-dept/dept/get/2
+# 修改之后  http://myzuul.com:9527/mydept/dept/get/1
+zuul:
+  # 保证单入口单出口  microservicecloud-dept  不能访问 从而只能使用我们配置好的名字访问
+  ignored-services: microservicecloud-dept
+  #批处理使用隐藏 微服务 名字访问的操作
+  #ignored-services: "*"
+  #设置统一公共前缀(所有服务前面添加前缀)
+  #prefix: /legend
+  routes:
+    mydept.serviceId: microservicecloud-dept
+    mydept.path: /mydept/**
+
+#info:
+#  app.name: legend-microcloud
+#  company.name: www.legend.com
+#  build.artifactId: $project.artifactId$
+#  build.version: $project.version$
+
